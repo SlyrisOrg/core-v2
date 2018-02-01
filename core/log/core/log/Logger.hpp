@@ -205,7 +205,7 @@ namespace logging
             _lvl = lvl;
         }
 
-        virtual Handle operator()(Level lvl) const noexcept
+        Handle operator()(Level lvl) const noexcept
         {
             Handle ret(lvl >= _lvl);
 
