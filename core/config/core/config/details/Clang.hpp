@@ -2,8 +2,8 @@
 // Created by szterg_r on 22/08/2017.
 //
 
-#ifndef CORE_UTILS_CLANG_HPP
-#define CORE_UTILS_CLANG_HPP
+#ifndef CORE_CONFIG_DETAILS_CLANG_HPP
+#define CORE_CONFIG_DETAILS_CLANG_HPP
 
 #define USING_CLANG
 
@@ -23,4 +23,4 @@ static always_inline constexpr bool unlikely(bool x) noexcept
     return __builtin_expect(x, false);
 }
 
-#endif //CORE_UTILS_CLANG_HPP
+#endif //CORE_CONFIG_DETAILS_CLANG_HPP
