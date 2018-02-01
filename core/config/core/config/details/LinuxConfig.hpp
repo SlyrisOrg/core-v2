@@ -1,0 +1,10 @@
+//
+// Created by szterg_r on 22/08/2017.
+//
+
+#ifndef CORE_UTILS_LINUXCONFIG_HPP
+#define CORE_UTILS_LINUXCONFIG_HPP
+
+#define USING_LINUX
+
+#endif //CORE_UTILS_LINUXCONFIG_HPP
