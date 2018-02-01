@@ -21,4 +21,6 @@
 # include <core/config/details/OSXConfig.hpp>
 #endif
 
+#include <core/config/Endian.hpp>
+
 #endif //CORE_CONFIG_PLATFORMCONFIG_HPP

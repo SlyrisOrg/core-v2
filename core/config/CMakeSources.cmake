@@ -4,6 +4,7 @@ set(MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/core/config)
 set(MODULE_PUBLIC_HEADERS
         ${MODULE_PATH}/PlatformConfig.hpp
         ${MODULE_PATH}/CompilerConfig.hpp
+        ${MODULE_PATH}/Endian.hpp
         ${MODULE_PATH}/Config.hpp
         )
 
