@@ -8,13 +8,13 @@ TYPE="Debug"
 
 function parse_args()
 {
-    while getopts ":c:x:t:" opt; do
+    while getopts ":c:x:t:h" opt; do
 	case $opt in
 	    c)
-		CXXCOMPILER=$(which $OPTARG)
+		CXXCOMPILER=$OPTARG
 		;;
 	    x)
-		CCOMPILER=$(which $OPTARG)
+		CCOMPILER=$OPTARG
 		;;
 	    t)
 		TYPE=$OPTARG
@@ -46,7 +46,7 @@ function build_targets
 {
     mkdir -p $BUILD_DIR
     cd $BUILD_DIR
-    cmake -DCMAKE_BUILD_TYPE=$TYPE -DCMAKE_C_COMPILER=$CCOMPILER -DCMAKE_CXX_COMPILER=$CXXCOMPILER -DCORE_BUILD_TESTS=ON ..
+    cmake -DCMAKE_BUILD_TYPE=$TYPE -DCMAKE_C_COMPILER=$CCOMPILER_EXE -DCMAKE_CXX_COMPILER=$CXXCOMPILER_EXE -DCORE_BUILD_TESTS=ON ..
     make -j2
     cd ..
 }
@@ -71,7 +71,9 @@ function run_xunit
 }
 
 parse_args "$@"
-BUILD_DIR=${CCOMPILER}-${TYPE}-build
+CCOMPILER_EXE=$(which $CCOMPILER)
+CXXCOMPILER_EXE=$(which $CXXCOMPILER)
+BUILD_DIR=${CXXCOMPILER}-${TYPE}-build
 print_settings
 build_targets
 run_ctest
