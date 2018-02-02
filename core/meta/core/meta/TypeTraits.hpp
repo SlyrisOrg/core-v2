@@ -9,15 +9,21 @@
 
 namespace meta
 {
-    template <template <typename...> typename MetaFunction, typename, typename ...Params>
-    struct is_detected : std::false_type
+    namespace details
     {
-    };
+        template <template <typename...> typename MetaFunction, typename, typename ...Params>
+        struct is_detected : std::false_type
+        {
+        };
+
+        template <template <typename...> typename MetaFunction, typename ...Params>
+        struct is_detected<MetaFunction, std::void_t<MetaFunction<Params...>>, Params...> : std::true_type
+        {
+        };
+    }
 
     template <template <typename...> typename MetaFunction, typename ...Params>
-    struct is_detected<MetaFunction, std::void_t<MetaFunction<Params...>>, Params...> : std::true_type
-    {
-    };
+    using is_detected = details::is_detected<MetaFunction, void, Params...>;
 
     template <typename T, typename U>
     using comparison_t = decltype(std::declval<T &>() == std::declval<U &>());
