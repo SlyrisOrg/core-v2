@@ -54,7 +54,7 @@ function build_targets
 function run_ctest
 {
     cd $BUILD_DIR
-    ctest --no-compress-output -T Test -D ExperimentalMemCheck
+    ctest --no-compress-output -T Test -D ExperimentalMemCheck || exit 1
     cd ..
 }
 
@@ -62,7 +62,7 @@ function run_xunit
 {
     cd bin
     for i in *-test; do
-	./$i --gtest_output="xml:${i}-${TYPE}-result.xml"
+	./$i --gtest_output="xml:${i}-${TYPE}-result.xml" || exit 1
     done
     cd ..
     mkdir -p test-result/ctest
