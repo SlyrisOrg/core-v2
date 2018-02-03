@@ -32,21 +32,6 @@ namespace utils
         utils::details::setBackgroundColor(c);
     }
 
-    class ColorInitializer
-    {
-    public:
-        ColorInitializer() noexcept
-        {
-            utils::setColor(utils::White, std::cerr);
-            utils::setColor(utils::White, std::cout);
-        }
-
-        ~ColorInitializer() noexcept
-        {
-            utils::details::resetColor();
-        }
-    };
-
     static always_inline std::ostream &operator<<(std::ostream &os, utils::Color c) noexcept
     {
         utils::setColor(c, os);
@@ -62,8 +47,6 @@ namespace utils
 #endif
         return os;
     }
-
-    static const ColorInitializer manip;
 }
 
 #endif //CORE_UTILS_COLOR_HPP
