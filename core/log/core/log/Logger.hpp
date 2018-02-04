@@ -44,13 +44,13 @@ namespace logging
             const char *var = std::getenv("LOGGER_CONFIG");
 
             if (var)
-                __parseConfig(var);
+                _parseConfig(var);
         }
 
         ~LoggerConfManager() noexcept = default;
 
     private:
-        Level __stringToLevel(std::string_view v) const noexcept
+        Level _stringToLevel(std::string_view v) const noexcept
         {
             static const std::string_view arr[] = {
                 "debug",
@@ -66,7 +66,7 @@ namespace logging
             return Unknown;
         }
 
-        void __parseConfig(const std::string &var) noexcept
+        void _parseConfig(const std::string &var) noexcept
         {
             size_t start = 0;
             size_t end = var.find(',');
@@ -78,7 +78,7 @@ namespace logging
                 size_t pos = view.find(':');
                 if (pos != std::string_view::npos) {
                     _levels.emplace(std::make_pair(std::string(view.substr(0, pos)),
-                                                   __stringToLevel(view.substr(pos + 1, view.length() - pos - 1))));
+                                                   _stringToLevel(view.substr(pos + 1, view.length() - pos - 1))));
                 }
                 start = end == std::string::npos ? end : end + 1;
                 end = var.find(',', start);
@@ -169,14 +169,14 @@ namespace logging
         };
 
     protected:
-        void __putTime() const noexcept
+        void _putTime() const noexcept
         {
             auto n = std::chrono::system_clock::now().time_since_epoch();
 
             std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(n).count() << " ";
         }
 
-        std::string_view __levelToString(Level lvl) const noexcept
+        std::string_view _levelToString(Level lvl) const noexcept
         {
             static const std::string_view tab[] = {
                 "debug",
@@ -187,7 +187,7 @@ namespace logging
             return tab[lvl];
         }
 
-        void __levelApplyColor(Level lvl) const noexcept
+        void _levelApplyColor(Level lvl) const noexcept
         {
             static const utils::Color tab[] = {
                 utils::White,
@@ -213,11 +213,11 @@ namespace logging
 #ifdef LOGGER_THREAD_SAFE
                 std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
 #endif
-                __putTime();
+                _putTime();
                 utils::setColor(utils::Color::Cyan);
                 std::cerr << "[" << _name << "] ";
-                __levelApplyColor(lvl);
-                std::cerr << __levelToString(lvl);
+                _levelApplyColor(lvl);
+                std::cerr << _levelToString(lvl);
                 utils::resetColor();
                 std::cerr << ": ";
             }

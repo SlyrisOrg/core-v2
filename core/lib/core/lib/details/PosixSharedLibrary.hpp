@@ -41,7 +41,7 @@ namespace lib::details
         }
 
     private:
-        static void __addPrefix(fs::path &path) noexcept
+        static void _addPrefix(fs::path &path) noexcept
         {
             std::string fileName = path.filename().string();
             if (fileName.compare("lib") != 0) {
@@ -50,7 +50,7 @@ namespace lib::details
             }
         }
 
-        static void __addExtensionIfNeeded(fs::path &path) noexcept
+        static void _addExtensionIfNeeded(fs::path &path) noexcept
         {
             if (!path.has_extension()) {
 #ifdef USING_OSX
@@ -61,7 +61,7 @@ namespace lib::details
             }
         }
 
-        static LoadingMode __applyDefaultMode(LoadingMode mode) noexcept
+        static LoadingMode _applyDefaultMode(LoadingMode mode) noexcept
         {
             if (!(mode & RTLDNow)) {
                 mode = mode | RTLDLazy;
@@ -80,11 +80,11 @@ namespace lib::details
                 path = fs::path("./") / path;
             }
             if (!(mode & DontAddPrefix)) {
-                __addPrefix(path);
+                _addPrefix(path);
             }
             mode &= ~DontAddPrefix;
-            __addExtensionIfNeeded(path);
-            mode = __applyDefaultMode(mode);
+            _addExtensionIfNeeded(path);
+            mode = _applyDefaultMode(mode);
             _handle = dlopen(path.c_str(), mode);
         }
 

@@ -41,7 +41,7 @@ namespace lib::details
         }
 
     private:
-        static void __addExtensionIfNeeded(fs::path &path) noexcept
+        static void _addExtensionIfNeeded(fs::path &path) noexcept
         {
             if (!path.has_extension()) {
                 path += fs::path(".dll");
@@ -54,7 +54,7 @@ namespace lib::details
             /** Unload the library if previously loaded */
             unload();
 
-            __addExtensionIfNeeded(path);
+            _addExtensionIfNeeded(path);
             _handle = LoadLibrary(path.string().c_str());
         }
 

@@ -64,7 +64,7 @@
         };                                                                  \
                                                                             \
     private:                                                                \
-        enum_##name __stringToValue(const std::string_view v)               \
+        enum_##name _stringToValue(const std::string_view v)                \
         {                                                                   \
             static constexpr const std::string_view strTab[] = {            \
                 pp_for_each(__STRINGIFY_ELEM, __VA_ARGS__)                  \
@@ -80,13 +80,13 @@
         }                                                                   \
                                                                             \
     public:                                                                 \
-        name(const std::string_view v) : _value(__stringToValue(v))         \
+        name(const std::string_view v) : _value(_stringToValue(v))          \
         {                                                                   \
         }                                                                   \
                                                                             \
         name &operator=(const std::string_view v)                           \
         {                                                                   \
-            _value = __stringToValue(v);                                    \
+            _value = _stringToValue(v);                                     \
             return *this;                                                   \
         }                                                                   \
                                                                             \
