@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <core/pp/pp_stringify.hpp>
 #include <core/meta/TypeTraits.hpp>
+#include <core/meta/Visitor.hpp>
 #include <core/meta/Map.hpp>
 
 namespace refl
