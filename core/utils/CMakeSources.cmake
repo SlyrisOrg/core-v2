@@ -12,6 +12,7 @@ set(MODULE_PUBLIC_HEADERS
         ${MODULE_PATH}/NonMovable.hpp
         ${MODULE_PATH}/Relational.hpp
         ${MODULE_PATH}/Singleton.hpp
+        ${MODULE_PATH}/NamedType.hpp
         ${MODULE_PATH}/Utils.hpp
         )
 
