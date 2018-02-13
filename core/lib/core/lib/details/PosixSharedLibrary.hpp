@@ -44,7 +44,7 @@ namespace lib::details
         static void _addPrefix(fs::path &path) noexcept
         {
             std::string fileName = path.filename().string();
-            if (fileName.compare("lib") != 0) {
+            if (fileName.find("lib") != 0) {
                 fileName.insert(0, "lib");
                 path.replace_filename(fs::path(fileName));
             }
