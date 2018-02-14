@@ -1,3 +1,6 @@
 set(SOURCES span-test.cpp)
+set(SOURCES_RANGES range-test.cpp)
 CREATE_UNIT_TEST(containers-test Core: "${SOURCES}")
+CREATE_UNIT_TEST(range-test Core: "${SOURCES_RANGES}")
 target_link_libraries(containers-test Core::Containers)
+target_link_libraries(range-test Core::Containers)
