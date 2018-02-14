@@ -95,7 +95,7 @@ namespace refl
     template <typename MemberPtrT, typename MapT, typename KeyT>
     static inline constexpr auto getFunction(MapT &&map, KeyT &&k) noexcept
     {
-        return getMember<MemberPtrT>(std::forward<MapT>(map), std::forward<KeyT>(k));
+        return getMember<MemberPtrT>(std::forward<MapT>(map), std::forward<KeyTcore>(k));
     }
 
     class MemberNotFound : public std::exception
