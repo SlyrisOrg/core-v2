@@ -21,7 +21,7 @@ function remove_old_build($oldtarget, $type)
 function build($type)
 {
     mkdir build-$type
-    cd build-$type
+    Set-Location build-$type
     $cmd = "-DCMAKE_BUILD_TYPE=$type"
     $localpath = Join-Path $env:VCPKG_ROOT '/scripts/buildsystems/vcpkg.cmake'
     $localpath = $localpath -replace "\\", "/"
@@ -41,37 +41,34 @@ function run_xunit_impl($type)
 {
    foreach ($file in get-ChildItem *-test.exe) {
     $var = $file.name
-    echo $var
+    Write-Output $var
     & ./$var --gtest_output="xml:$var-windows-$type-result.xml"
     }
 }
 
 function run_xunit($type)
 {
-    cd ..
-    cd bin/$type
-    run_xunit_impl $type
-    cd ..
+    Set-Location ..
+    Set-Location bin
     run_xunit_impl
-    cd ..
+    Set-Location ..
 }
 
 function run_ctest($type)
 {
-   cd build-$type
+   Set-Location build-$type
    ctest --no-compress-output -T Test -C $type
-   cd ..
+   Set-Location ..
 }
 
 function publish_result($type)
 {
     mkdir test-result
-    cd test-result
+    Set-Location test-result
     mkdir ctest
-    cd ..
-    cp bin/$type/*.xml test-result/
-    cp bin/*.xml test-result/
-    cp build-$type/Testing/*/*.xml test-result/ctest
+    Set-Location ..
+    Copy-Item bin/*.xml test-result/
+    Copy-Item build-$type/Testing/*/*.xml test-result/ctest
 }
 
 function run($compiler, $type, $oldtarget) {
