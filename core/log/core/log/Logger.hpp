@@ -97,10 +97,12 @@ namespace logging
         }
 
 #ifdef LOGGER_THREAD_SAFE
+
         std::mutex &mutex() noexcept
         {
             return _mutex;
         }
+
 #endif
 
     private:
@@ -125,7 +127,7 @@ namespace logging
         class Handle
         {
         public:
-            explicit Handle(bool doLog) : _log(doLog)
+            explicit Handle(bool doLog) noexcept : _log(doLog)
             {
             }
 
@@ -134,9 +136,6 @@ namespace logging
             {
 #ifndef LOGGER_DISABLE_ALL
                 if (shouldLog()) {
-#ifdef LOGGER_THREAD_SAFE
-                    std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
-#endif
                     std::cerr << std::forward<T>(t);
                 }
 #endif
@@ -155,9 +154,6 @@ namespace logging
             {
 #ifndef LOGGER_DISABLE_ALL
                 if (shouldLog()) {
-#ifdef LOGGER_THREAD_SAFE
-                    std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
-#endif
                     manip(std::cerr);
                 }
 #endif
@@ -166,6 +162,9 @@ namespace logging
 
         private:
             bool _log;
+#ifdef LOGGER_THREAD_SAFE
+            std::scoped_lock<std::mutex> _lock{LoggerConfManager::get().mutex()};
+#endif
         };
 
     protected:
@@ -207,8 +206,7 @@ namespace logging
 
         Handle operator()(Level lvl) const noexcept
         {
-            Handle ret(lvl >= _lvl);
-
+#ifndef LOGGER_DISABLE_ALL
             if (lvl >= _lvl) {
 #ifdef LOGGER_THREAD_SAFE
                 std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
@@ -221,7 +219,8 @@ namespace logging
                 utils::resetColor();
                 std::cerr << ": ";
             }
-            return ret;
+#endif
+            return Handle(lvl >= _lvl);
         }
 
     protected:
