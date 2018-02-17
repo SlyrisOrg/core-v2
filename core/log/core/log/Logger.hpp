@@ -50,16 +50,16 @@ namespace logging
         ~LoggerConfManager() noexcept = default;
 
     private:
-        Level _stringToLevel(std::string_view v) const noexcept
+        static Level _stringToLevel(std::string_view v) noexcept
         {
-            static const std::string_view arr[] = {
+            static const std::array<std::string_view, 4> arr = {
                 "debug",
                 "info",
                 "warning",
                 "error",
             };
 
-            for (size_t i = 0; i < sizeof(arr) / sizeof(*arr); ++i) {
+            for (size_t i = 0; i < arr.size(); ++i) {
                 if (arr[i] == v)
                     return static_cast<Level>(i);
             }
@@ -97,12 +97,10 @@ namespace logging
         }
 
 #ifdef LOGGER_THREAD_SAFE
-
         std::mutex &mutex() noexcept
         {
             return _mutex;
         }
-
 #endif
 
     private:
@@ -113,114 +111,127 @@ namespace logging
 #endif
     };
 
-    class Logger
+    template <typename Logger>
+    class LoggerBase
     {
     public:
-        explicit Logger(const std::string &name, Level defaultLvl = Warning) noexcept :
-            _name(name),
-            _lvl(LoggerConfManager::get().getLevel(name))
-        {
-            if (_lvl == Unknown)
-                _lvl = defaultLvl;
-        }
-
         class Handle
         {
-        public:
-            explicit Handle(bool doLog) noexcept : _log(doLog)
+        private:
+            auto _getTime() const noexcept
             {
+                auto n = std::chrono::system_clock::now().time_since_epoch();
+                return std::chrono::duration_cast<std::chrono::milliseconds>(n).count();
+            }
+
+            std::string_view _getLevel(Level lvl) const noexcept
+            {
+                static const std::string_view tab[] = {
+                    "debug",
+                    "info",
+                    "warning",
+                    "error",
+                };
+                return tab[lvl];
+            }
+
+            utils::Color _getLevelColor(Level lvl) const noexcept
+            {
+                static const utils::Color tab[] = {
+                    utils::White,
+                    utils::White,
+                    utils::Yellow,
+                    utils::LightRed,
+                };
+                return tab[lvl];
+            }
+
+        public:
+            explicit Handle(const Logger &logger, Level lvl) noexcept :
+                _logger(logger), _shouldLog(lvl >= _logger.level())
+            {
+#ifndef LOGGER_DISABLE_ALL
+                if (_shouldLog) {
+                    _oss << _getTime() << " ";
+                    _oss << utils::Color::Cyan << "[" << _logger.name() << "] ";
+                    _oss << _getLevelColor(lvl) << _getLevel(lvl) << utils::ResetColor::Reset << ": ";
+                }
+#endif
+            }
+
+            ~Handle() noexcept
+            {
+                _logger.log(_oss.str());
             }
 
             template <typename T>
             Handle &operator<<(T &&t) noexcept
             {
 #ifndef LOGGER_DISABLE_ALL
-                if (shouldLog()) {
-                    std::cerr << std::forward<T>(t);
+                if (_shouldLog) {
+                    _oss << std::forward<T>(t);
                 }
 #endif
                 return *this;
             }
 
-            bool shouldLog() const noexcept
-            {
-                return _log;
-            }
-
             using CerrT = decltype(std::cerr);
             using EndlT = CerrT &(*)(CerrT &);
 
-            Handle &operator<<(EndlT manip)
+            Handle &operator<<(EndlT manip) noexcept
             {
 #ifndef LOGGER_DISABLE_ALL
-                if (shouldLog()) {
-                    manip(std::cerr);
+                if (_shouldLog) {
+                    manip(_oss);
                 }
 #endif
                 return *this;
             }
 
         private:
-            bool _log;
-#ifdef LOGGER_THREAD_SAFE
-            std::scoped_lock<std::mutex> _lock{LoggerConfManager::get().mutex()};
-#endif
+            const Logger &_logger;
+            bool _shouldLog;
+            std::ostringstream _oss;
         };
+    };
 
-    protected:
-        void _putTime() const noexcept
+    class Logger : public LoggerBase<Logger>
+    {
+    public:
+        explicit Logger(const std::string &name, Level defaultLvl = Warning) noexcept :
+            _name(name), _lvl(LoggerConfManager::get().getLevel(name))
         {
-            auto n = std::chrono::system_clock::now().time_since_epoch();
-
-            std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(n).count() << " ";
-        }
-
-        std::string_view _levelToString(Level lvl) const noexcept
-        {
-            static const std::string_view tab[] = {
-                "debug",
-                "info",
-                "warning",
-                "error",
-            };
-            return tab[lvl];
-        }
-
-        void _levelApplyColor(Level lvl) const noexcept
-        {
-            static const utils::Color tab[] = {
-                utils::White,
-                utils::White,
-                utils::Yellow,
-                utils::LightRed,
-            };
-
-            utils::setColor(tab[lvl]);
+            if (_lvl == Unknown)
+                _lvl = defaultLvl;
         }
 
     public:
+        void log(const std::string &str) const noexcept
+        {
+#ifdef LOGGER_THREAD_SAFE
+            std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
+#endif
+            std::cerr << str;
+        }
+
         void setLevel(Level lvl) noexcept
         {
             _lvl = lvl;
         }
 
+        Level level() const noexcept
+        {
+            return _lvl;
+        }
+
+        const std::string &name() const noexcept
+        {
+            return _name;
+        }
+
         Handle operator()(Level lvl) const noexcept
         {
-#ifndef LOGGER_DISABLE_ALL
-            if (lvl >= _lvl) {
-#ifdef LOGGER_THREAD_SAFE
-                std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
-#endif
-                _putTime();
-                utils::setColor(utils::Color::Cyan);
-                std::cerr << "[" << _name << "] ";
-                _levelApplyColor(lvl);
-                std::cerr << _levelToString(lvl);
-                utils::resetColor();
-                std::cerr << ": ";
-            }
-#endif
-            return Handle(lvl >= _lvl);
+            return Handle(*this, lvl);
         }
 
     protected:
