@@ -215,7 +215,7 @@ namespace logging
         void log(const std::string &str) const noexcept
         {
 #ifdef LOGGER_THREAD_SAFE
-            std::scoped_lock<std::mutex> lock{Logger::_mutex};
+            std::scoped_lock<std::mutex> lock{Logger::_mutex()};
 #endif
             std::cerr << str;
         }
@@ -243,13 +243,14 @@ namespace logging
         const std::string _name;
 
 #ifdef LOGGER_THREAD_SAFE
-        static std::mutex _mutex;
+        //MSVC lacks support for inline variables
+        static std::mutex &_mutex() noexcept
+        {
+            static std::mutex mutex;
+            return mutex;
+        }
 #endif
     };
-
-#ifdef LOGGER_THREAD_SAFE
-    inline std::mutex Logger::_mutex{};
-#endif
 };
 
 #endif //CORE_LOG_LOGGER_HPP
