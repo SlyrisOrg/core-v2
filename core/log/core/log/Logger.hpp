@@ -36,6 +36,37 @@ namespace logging
         Silent,
     };
 
+    namespace details
+    {
+        static inline auto getTime() noexcept
+        {
+            auto n = std::chrono::system_clock::now().time_since_epoch();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(n).count();
+        }
+
+        static inline std::string_view getLevelString(Level lvl) noexcept
+        {
+            static const std::string_view tab[] = {
+                "debug",
+                "info",
+                "warning",
+                "error",
+            };
+            return tab[lvl];
+        }
+
+        static inline utils::Color getLevelColor(Level lvl) noexcept
+        {
+            static const utils::Color tab[] = {
+                utils::White,
+                utils::White,
+                utils::Yellow,
+                utils::LightRed,
+            };
+            return tab[lvl];
+        }
+    }
+
     class LoggerConfManager : public utils::Singleton<LoggerConfManager>
     {
     public:
@@ -96,19 +127,8 @@ namespace logging
             return Level::Unknown;
         }
 
-#ifdef LOGGER_THREAD_SAFE
-        std::mutex &mutex() noexcept
-        {
-            return _mutex;
-        }
-#endif
-
     private:
         std::unordered_map<std::string, Level> _levels;
-
-#ifdef LOGGER_THREAD_SAFE
-        std::mutex _mutex;
-#endif
     };
 
     template <typename Logger>
@@ -117,46 +137,9 @@ namespace logging
     public:
         class Handle
         {
-        private:
-            auto _getTime() const noexcept
-            {
-                auto n = std::chrono::system_clock::now().time_since_epoch();
-                return std::chrono::duration_cast<std::chrono::milliseconds>(n).count();
-            }
-
-            std::string_view _getLevel(Level lvl) const noexcept
-            {
-                static const std::string_view tab[] = {
-                    "debug",
-                    "info",
-                    "warning",
-                    "error",
-                };
-                return tab[lvl];
-            }
-
-            utils::Color _getLevelColor(Level lvl) const noexcept
-            {
-                static const utils::Color tab[] = {
-                    utils::White,
-                    utils::White,
-                    utils::Yellow,
-                    utils::LightRed,
-                };
-                return tab[lvl];
-            }
-
         public:
-            explicit Handle(const Logger &logger, Level lvl) noexcept :
-                _logger(logger), _shouldLog(lvl >= _logger.level())
+            explicit Handle(Logger &logger, Level lvl) noexcept : _logger(logger), _shouldLog(lvl >= _logger.level())
             {
-#ifndef LOGGER_DISABLE_ALL
-                if (_shouldLog) {
-                    _oss << _getTime() << " ";
-                    _oss << utils::Color::Cyan << "[" << _logger.name() << "] ";
-                    _oss << _getLevelColor(lvl) << _getLevel(lvl) << utils::ResetColor::Reset << ": ";
-                }
-#endif
             }
 
             Handle(const Handle &other) noexcept : _logger(other._logger), _shouldLog(other._shouldLog)
@@ -165,7 +148,9 @@ namespace logging
 
             ~Handle() noexcept
             {
+#ifndef LOGGER_DISABLE_ALL
                 _logger.log(_oss.str());
+#endif
             }
 
             template <typename T>
@@ -193,29 +178,13 @@ namespace logging
             }
 
         private:
-            const Logger &_logger;
+            Logger &_logger;
             bool _shouldLog;
             std::ostringstream _oss;
         };
-    };
 
-    class Logger : public LoggerBase<Logger>
-    {
-    public:
-        explicit Logger(const std::string &name, Level defaultLvl = Warning) noexcept :
-            _name(name), _lvl(LoggerConfManager::get().getLevel(name))
+        explicit LoggerBase(Level lvl) : _lvl(lvl)
         {
-            if (_lvl == Unknown)
-                _lvl = defaultLvl;
-        }
-
-    public:
-        void log(const std::string &str) const noexcept
-        {
-#ifdef LOGGER_THREAD_SAFE
-            std::scoped_lock<std::mutex> lock{LoggerConfManager::get().mutex()};
-#endif
-            std::cerr << str;
         }
 
         void setLevel(Level lvl) noexcept
@@ -228,20 +197,59 @@ namespace logging
             return _lvl;
         }
 
+    protected:
+        Level _lvl;
+    };
+
+    class Logger : public LoggerBase<Logger>
+    {
+    public:
+        explicit Logger(const std::string &name, Level defaultLvl = Warning) noexcept :
+            LoggerBase(LoggerConfManager::get().getLevel(name)), _name(name)
+        {
+            if (_lvl == Unknown)
+                _lvl = defaultLvl;
+        }
+
+    public:
+        void log(const std::string &str) const noexcept
+        {
+#ifdef LOGGER_THREAD_SAFE
+            std::scoped_lock<std::mutex> lock{Logger::_mutex};
+#endif
+            std::cerr << str;
+        }
+
         const std::string &name() const noexcept
         {
             return _name;
         }
 
-        Handle operator()(Level lvl) const noexcept
+        Handle operator()(Level lvl) noexcept
         {
-            return Handle(*this, lvl);
+            Handle ret(*this, lvl);
+
+#ifndef LOGGER_DISABLE_ALL
+            if (lvl >= _lvl) {
+                ret << details::getTime() << " ";
+                ret << utils::Color::Cyan << "[" << _name << "] ";
+                ret << details::getLevelColor(lvl) << details::getLevelString(lvl) << utils::ResetColor::Reset << ": ";
+            }
+#endif
+            return ret;
         }
 
     protected:
-        std::string _name;
-        Level _lvl;
+        const std::string _name;
+
+#ifdef LOGGER_THREAD_SAFE
+        static std::mutex _mutex;
+#endif
     };
+
+#ifdef LOGGER_THREAD_SAFE
+    inline std::mutex Logger::_mutex{};
+#endif
 };
 
 #endif //CORE_LOG_LOGGER_HPP
