@@ -7,7 +7,7 @@ if (LINUX)
 endif(LINUX)
 
 if(APPLE)
-    target_link_libraries(Core-Lib INTERFACE Core::Config ${CMAKE_DL_LIBS} /usr/local/lib/libc++experimental.a)
+    target_link_libraries(Core-Lib INTERFACE Core::Config ${CMAKE_DL_LIBS} /usr/local/opt/llvm/lib/libc++experimental.a)
 endif(APPLE)
 
 if (WIN32)
