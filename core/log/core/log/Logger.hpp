@@ -84,10 +84,12 @@ namespace logging
         static Level _stringToLevel(std::string_view v) noexcept
         {
             static const std::array<std::string_view, 4> arr = {
-                "debug",
-                "info",
-                "warning",
-                "error",
+                {
+                    "debug",
+                    "info",
+                    "warning",
+                    "error",
+                }
             };
 
             for (size_t i = 0; i < arr.size(); ++i) {
@@ -128,7 +130,7 @@ namespace logging
         }
 
     private:
-        std::unordered_map<std::string, Level> _levels;
+        std::unordered_map <std::string, Level> _levels;
     };
 
     template <typename Logger>
