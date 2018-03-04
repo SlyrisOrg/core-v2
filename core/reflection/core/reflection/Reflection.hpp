@@ -5,6 +5,7 @@
 #ifndef CORE_REFLECTION_REFLECTION_HPP
 #define CORE_REFLECTION_REFLECTION_HPP
 
+#include <string>
 #include <functional>
 #include <optional>
 #include <type_traits>
