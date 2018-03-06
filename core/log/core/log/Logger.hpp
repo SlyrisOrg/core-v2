@@ -203,7 +203,7 @@ namespace logging
         Level _lvl;
     };
 
-    class Logger : public LoggerBase<Logger>
+    class Logger : public LoggerBase<const Logger>
     {
     public:
         explicit Logger(const std::string &name, Level defaultLvl = Warning) noexcept :
@@ -227,7 +227,7 @@ namespace logging
             return _name;
         }
 
-        Handle operator()(Level lvl) noexcept
+        Handle operator()(Level lvl) const noexcept
         {
             Handle ret(*this, lvl);
 
