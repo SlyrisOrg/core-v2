@@ -7,7 +7,7 @@
 
 #include <cstddef>
 #include <type_traits>
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
 #include <core/utils/Relational.hpp>
 
 namespace ctr

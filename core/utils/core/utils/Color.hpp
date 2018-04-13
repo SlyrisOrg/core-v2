@@ -6,7 +6,7 @@
 #define CORE_UTILS_COLOR_HPP
 
 #include <iostream>
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
 #include <core/utils/ColorEnum.hpp>
 #include <core/utils/details/Color.hpp>
 
