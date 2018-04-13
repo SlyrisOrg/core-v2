@@ -2,7 +2,6 @@
 // Created by doom on 12/10/17.
 //
 
-#include <core/config/Config.hpp>
 #include <core/lib/Alias.hpp>
 #include "Test2.hpp"
 
