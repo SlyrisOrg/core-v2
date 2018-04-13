@@ -5,7 +5,7 @@
 #ifndef CORE_LIB_ALIAS_HPP
 #define CORE_LIB_ALIAS_HPP
 
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
 
 #if defined(USING_WINDOWS)
 #define __alias_section__           __pragma(section("__lib", read)) __declspec(allocate("__lib"))
@@ -16,7 +16,7 @@
 #endif
 
 #define lib_alias_function(name, alias_name)                                \
-    extern "C" EXPORT_SYMBOL const void *alias_name;                        \
+    extern "C" export_symbol const void *alias_name;                        \
     const void *alias_name = reinterpret_cast<const void *>(name);
 
 #endif //CORE_LIB_ALIAS_HPP

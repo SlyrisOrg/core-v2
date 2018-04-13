@@ -6,7 +6,7 @@
 #define CORE_META_VISITOR_HPP
 
 #include <utility>
-#include <core/config/CompilerConfig.hpp>
+#include <core/config/Environment.hpp>
 
 namespace meta
 {

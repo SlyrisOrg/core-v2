@@ -5,7 +5,7 @@
 #ifndef CORE_LIB_SHAREDLIBRARY_HPP
 #define CORE_LIB_SHAREDLIBRARY_HPP
 
-#include <core/config/PlatformConfig.hpp>
+#include <core/config/CompilerHints.hpp>
 
 #ifdef USING_WINDOWS
 #include <core/lib/details/WindowsSharedLibrary.hpp>

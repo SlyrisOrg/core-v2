@@ -6,7 +6,7 @@
 #define CORE_UTILS_DETAILS_WINDOWS_COLOR_HPP
 
 #include <iostream>
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
 #include <core/utils/ColorEnum.hpp>
 #include <windows.h>
 
