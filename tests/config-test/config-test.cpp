@@ -3,36 +3,95 @@
 //
 
 #include <gtest/gtest.h>
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
+#include <numeric>
 
-TEST(Config, Features)
-{
-    bool hasPlatform = false;
+namespace {
 
-#if defined(USING_LINUX) || defined(USING_OSX) || defined(USING_WINDOWS)
-    hasPlatform = true;
-#endif
+    // Check that there is no warning or error at compilation because all paths doesn't return a value
+    int switch_on(int count) {
+        switch (count) {
+            case 1: return 0;
+            case 2: return 1;
+            case 5: return 2;
+            case 10: return 3;
+            default: unreachable();
+        }
+    }
 
-    ASSERT_TRUE(hasPlatform);
+    // SO & DLL symbols
+    exported_symbol [[maybe_unused]] void exported_function() {}
+    imported_symbol [[maybe_unused]] void imported_function();
+    local_symbol    [[maybe_unused]] void local_function() {}
+
+    // Make sure the function is inlined due to alloca behavior
+    // On Windows, the function isn't inlined in debug mode (leading to corrupt stack memory). Use /Ob1+
+    template <class T>
+    always_inline T* make_array(int size) {
+        auto ptr = static_cast<T*>(alloca(size * sizeof(T)));
+        for (int i = 0; i < size; ++i) {
+            new (ptr + i) T();
+        }
+        return ptr;
+    }
+
 }
 
-TEST(Config, CompilerFeatures)
+TEST(Config, Environment)
 {
-    bool has__FUNCTION__ = false;
-    bool hasEXPORT_SYMBOL = false;
+    using namespace config;
 
-#if defined(__FUNCTION__)
-    has__FUNCTION__ = true;
-#endif
+    bool knowEndian = false;
+    if constexpr (
+            current_endian == endian::little ||
+            current_endian == endian::big) {
+        knowEndian = true;
+    }
+    ASSERT_TRUE(knowEndian);
 
-#if defined(EXPORT_SYMBOL)
-    hasEXPORT_SYMBOL = true;
-#endif
+    bool knownPlatform = false;
+    if constexpr (
+            current_os == os::windows ||
+            current_os == os::linux   ||
+            current_os == os::apple) {
+        knownPlatform = true;
+    }
+    ASSERT_TRUE(knownPlatform);
 
-    ASSERT_TRUE(has__FUNCTION__);
-    ASSERT_TRUE(hasEXPORT_SYMBOL);
-    ASSERT_TRUE(likely(true));
-    ASSERT_FALSE(likely(false));
-    ASSERT_TRUE(unlikely(true));
+    bool knownCompiler = false;
+    if constexpr (
+            current_compiler == compiler::msvc ||
+            current_compiler == compiler::gcc  ||
+            current_compiler == compiler::clang) {
+        knownCompiler = true;
+    }
+    ASSERT_TRUE(knownCompiler);
+
+    bool knownMode = false;
+    if constexpr (
+            current_mode == mode::debug ||
+            current_mode == mode::release) {
+        knownMode = true;
+    }
+    ASSERT_TRUE(knownMode);
+}
+
+TEST(Config, CompilerHints)
+{
+    ASSERT_TRUE(switch_on(5) == 2);
+
+    // Common error handling setup
+    if unlikely (true) {
+        []() no_inline {
+            SUCCEED();
+        }();
+    }
+    else {
+        FAIL();
+    }
+
+    ASSERT_TRUE (likely  (true));
+    ASSERT_FALSE(likely  (false));
+    ASSERT_TRUE (unlikely(true));
     ASSERT_FALSE(unlikely(false));
 }

@@ -5,7 +5,7 @@
 #ifndef CORE_LIB_LOADINGMODE_HPP
 #define CORE_LIB_LOADINGMODE_HPP
 
-#include <core/config/Config.hpp>
+#include <core/config/CompilerHints.hpp>
 
 namespace lib
 {
